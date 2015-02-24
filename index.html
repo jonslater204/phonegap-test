@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<!--
+    Copyright (c) 2012-2014 Adobe Systems Incorporated. All rights reserved.
+
+    Licensed to the Apache Software Foundation (ASF) under one
+    or more contributor license agreements.  See the NOTICE file
+    distributed with this work for additional information
+    regarding copyright ownership.  The ASF licenses this file
+    to you under the Apache License, Version 2.0 (the
+    "License"); you may not use this file except in compliance
+    with the License.  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing,
+    software distributed under the License is distributed on an
+    "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+     KIND, either express or implied.  See the License for the
+    specific language governing permissions and limitations
+    under the License.
+-->
+<html>
+   <head>
+      <meta charset="utf-8" />
+      <meta name="format-detection" content="telephone=no" />
+      <meta name="msapplication-tap-highlight" content="no" />
+      <!-- WARNING: for iOS 7, remove the width=device-width and height=device-height attributes. See https://issues.apache.org/jira/browse/CB-4323 -->
+      <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height, target-densitydpi=device-dpi" />
+      <!-- link rel="stylesheet" type="text/css" href="css/index.css" / -->
+      <link rel="stylesheet" type="text/css" href="semantic/semantic.css" />
+      <title>Test</title>
+   </head>
+   <body style="background: green;">
+      <div class="app">
+         <h3>Test</h3>
+         <button id="js-vibrate">Vibrate</button>
+         <button id="js-device">Device</button>
+         <button id="js-torch">Torch</button>
+         <span>Battery: <span id="js-battery">-</span></span>
+         <button id="js-scan">Scan</button>
+         <button id="js-scan2">Scan 2</button>
+         <button id="js-photo">Photo</button>
+         <button id="js-photo-link">Photo Link</button>
+         <img id="js-photo-img" src="" width="100" />
+         <img id="js-photo-link-img" src="" width="100" />
+      </div>
+      <script type="text/javascript" src="cordova.js"></script>
+      <script src="http://cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.js"></script>
+      <script type="text/javascript" src="js/index.js"></script>
+      <script type="text/javascript" src="js/battery.js"></script>
+      <script type="text/javascript" src="js/Flashlight.js"></script>
+      <script type="text/javascript" src="js/barcodescanner.js"></script>
+      <script type="text/javascript" src="semantic/semantic.js"></script>
+      <script type="text/javascript">
+      app.initialize();
+      $(document).on('click', '#js-vibrate', function() {
+         console.log('Vibrate!');
+         navigator.vibrate(1);
+      });
+      $(document).on('click', '#js-device', function() {
+         console.log('Cordova: ' + device.cordova);
+         console.log('Model: ' + device.model);
+         console.log('Platform: ' + device.platform);
+         console.log('UUID: ' + device.uuid);
+         console.log('Version: ' + device.version);
+      });
+      $(document).on('batterystatus', function(info) {
+         console.log('Battery Status');
+         $('#js-battery').text(info.level + ((info.isPlugged) ? '^' : ''));
+      });
+      //window.addEventListener('batterystatus', function(info) {
+         //console.log('Battery Status');
+         //$('#js-battery').text(info.level + ((info.isPlugged) ? '^' : ''));
+      //}, false);
+      $(document).on('click', '#js-photo', function() {
+         navigator.camera.getPicture(function(imageData) {
+            var image = document.getElementById('js-photo-img');
+            image.src = "data:image/jpeg;base64," + imageData;
+            navigator.camera.cleanup(function() { alert('Cleared'); }, function() { alert('Not Cleared'); })
+         }, function(message) {
+            alert('Failed because: ' + message);
+            navigator.camera.cleanup(function() { alert('Cleared'); }, function() { alert('Not Cleared'); })
+         }, {
+            quality: 10,
+            allowEdit : true,
+            destinationType: Camera.DestinationType.DATA_URL,
+            mediaType: Camera.MediaType.ALLMEDIA
+         });
+      });
+      $(document).on('click', '#js-photo-link', function() {
+         navigator.camera.getPicture(function(imageURI) {
+            var image = document.getElementById('js-photo-link-img');
+            image.src = imageURI;
+            navigator.camera.cleanup(function() { alert('Cleared'); }, function() { alert('Not Cleared'); })
+         }, function(message) {
+            alert('Failed because: ' + message);
+            navigator.camera.cleanup(function() { alert('Cleared'); }, function() { alert('Not Cleared'); })
+         }, {
+            quality: 10,
+            allowEdit : true,
+            sourceType : Camera.PictureSourceType.PHOTOLIBRARY,
+            destinationType: Camera.DestinationType.FILE_URI,
+            mediaType: Camera.MediaType.ALLMEDIA
+         });
+      });
+      $(document).on('click', '#js-torch', function() {
+         window.plugins.flashlight.available(function(isAvailable) {
+            if (isAvailable) {
+               window.plugins.flashlight.toggle();
+            } else {
+               alert("Flashlight not available on this device");
+            }
+         });
+      });
+      $(document).on('click', '#js-scan', function() {
+         alert(window.plugins.barcodeScanner);
+         window.plugins.barcodeScanner.scan(
+            function (result) {
+               alert("We got a barcode\n" +
+                  "Result: " + result.text + "\n" +
+                  "Format: " + result.format + "\n" +
+                  "Cancelled: " + result.cancelled);
+            }, 
+            function (error) {
+               alert("Scanning failed: " + error);
+            }
+         );
+      });
+      $(document).on('click', '#js-scan2', function() {
+         alert('Scan 2');
+         scanner.startScanning();
+      });
+      </script>
+   </body>
+</html>
